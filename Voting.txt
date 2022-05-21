@@ -1,0 +1,125 @@
+Voting App
+==========
+
+[root@ip-172-31-31-69 example-voting-app]# pwd
+/root/example-voting-app
+
+[root@ip-172-31-31-69 example-voting-app]# cd k8s-specifications/
+
+[root@ip-172-31-31-69 k8s-specifications]# ls
+db-deployment.yaml  redis-deployment.yaml  result-deployment.yaml  vote-deployment.yaml  worker-deployment.yaml
+db-service.yaml     redis-service.yaml     result-service.yaml     vote-service.yaml
+
+[root@ip-172-31-31-69 k8s-specifications]# kubectl apply -f .
+deployment.apps/db created
+service/db created
+deployment.apps/redis created
+service/redis created
+deployment.apps/result created
+service/result created
+deployment.apps/vote created
+service/vote created
+deployment.apps/worker created
+
+[root@ip-172-31-31-69 k8s-specifications]# kubectl get pods
+NAME                               READY   STATUS    RESTARTS   AGE
+db-b54cd94f4-rt2xp                 1/1     Running   0          28s
+mavenir-mysql-54f7ddc699-2mjjh     0/1     Pending   0          29h
+mongodb                            1/1     Running   0          3d6h
+mysql-1653043237-b6f4bb4c5-dfbm7   0/1     Pending   0          29h
+redis-868d64d78-h2655              1/1     Running   0          28s
+result-5d57b59f4b-kv2w4            1/1     Running   0          28s
+vote-94849dc97-kx9wx               1/1     Running   0          27s
+worker-dd46d7584-wwptc             1/1     Running   0          27s
+
+[root@ip-172-31-31-69 k8s-specifications]# kubectl get all
+NAME                                   READY   STATUS    RESTARTS   AGE
+pod/db-b54cd94f4-rt2xp                 1/1     Running   0          56s
+pod/mavenir-mysql-54f7ddc699-2mjjh     0/1     Pending   0          29h
+pod/mongodb                            1/1     Running   0          3d6h
+pod/mysql-1653043237-b6f4bb4c5-dfbm7   0/1     Pending   0          29h
+pod/redis-868d64d78-h2655              1/1     Running   0          56s
+pod/result-5d57b59f4b-kv2w4            1/1     Running   0          56s
+pod/vote-94849dc97-kx9wx               1/1     Running   0          55s
+pod/worker-dd46d7584-wwptc             1/1     Running   0          55s
+
+NAME                       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+service/db                 ClusterIP   10.101.57.73    <none>        5432/TCP         56s
+service/mavenir-mysql      ClusterIP   10.99.73.78     <none>        3306/TCP         29h
+service/mysql-1653043237   ClusterIP   10.111.102.25   <none>        3306/TCP         29h
+service/redis              ClusterIP   10.96.75.171    <none>        6379/TCP         56s
+service/result             NodePort    10.106.3.196    <none>        5001:31001/TCP   55s
+service/vote               NodePort    10.107.98.159   <none>        5000:31000/TCP   55s
+
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/db                 1/1     1            1           56s
+deployment.apps/mavenir-mysql      0/1     1            0           29h
+deployment.apps/mysql-1653043237   0/1     1            0           29h
+deployment.apps/redis              1/1     1            1           56s
+deployment.apps/result             1/1     1            1           56s
+deployment.apps/vote               1/1     1            1           55s
+deployment.apps/worker             1/1     1            1           55s
+
+NAME                                         DESIRED   CURRENT   READY   AGE
+replicaset.apps/db-b54cd94f4                 1         1         1       56s
+replicaset.apps/mavenir-mysql-54f7ddc699     1         1         0       29h
+replicaset.apps/mysql-1653043237-b6f4bb4c5   1         1         0       29h
+replicaset.apps/redis-868d64d78              1         1         1       56s
+replicaset.apps/result-5d57b59f4b            1         1         1       56s
+replicaset.apps/vote-94849dc97               1         1         1       55s
+replicaset.apps/worker-dd46d7584             1         1         1       55s
+
+
+
+
+http://54.169.161.93:31001/ --> Results
+http://54.169.161.93:31000/ --> Voting app
+
+1:Observation:
+==============
+when the cat / dog is clicked corresponding voting% is shown in the results page
+
+
+[root@ip-172-31-31-69 k8s-specifications]# kubectl delete pod vote-94849dc97-kx9wx
+pod "vote-94849dc97-kx9wx" deleted
+[root@ip-172-31-31-69 k8s-specifications]#
+
+
+2:Observation:
+==============
+After deleting the Vote pod, voting is stopped momentarily and then it allows to vote as soon as the voting pod is up
+
+
+[root@ip-172-31-31-69 k8s-specifications]# kubectl delete pod db-b54cd94f4-rt2xp
+pod "db-b54cd94f4-rt2xp" deleted
+
+3:Observation:
+==============
+when the db pod is deleted, the result page is not reflecting the latest change
+
+[root@ip-172-31-31-69 k8s-specifications]# kubectl get pods
+NAME                               READY   STATUS    RESTARTS   AGE
+db-b54cd94f4-tp8k5                 1/1     Running   0          12m
+mavenir-mysql-54f7ddc699-2mjjh     0/1     Pending   0          30h
+mongodb                            1/1     Running   0          3d8h
+mysql-1653043237-b6f4bb4c5-dfbm7   0/1     Pending   0          30h
+redis-868d64d78-jmlzt              1/1     Running   0          29m
+result-5d57b59f4b-mj5j5            1/1     Running   0          28m
+vote-94849dc97-cvb8r               1/1     Running   0          33m
+worker-dd46d7584-nl5qg             1/1     Running   2          32m
+
+
+[root@ip-172-31-31-69 k8s-specifications]#
+[root@ip-172-31-31-69 k8s-specifications]# kubectl delete pod result-5d57b59f4b-mj5j5
+pod "result-5d57b59f4b-mj5j5" deleted
+
+
+4:Observation:
+==============
+On deleting the db pod, result page was not reflecting the latest changes.
+Connection issue is there, type of connection used is (socket) - synchronous connection.
+To recover the connectivity the RESULT pod was deleted. 
+
+
+
+
